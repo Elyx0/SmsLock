@@ -1,103 +1,20 @@
 package com.example.smslock
 
 import android.Manifest
-import android.app.Activity
-import android.app.admin.DeviceAdminReceiver
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.launch
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-
-import com.example.smslock.ui.theme.SmsLockTheme
-
-//class MainActivity : ComponentActivity() {
-//    private val REQUEST_CODE_ENABLE_ADMIN = 1
-//    private val REQUEST_CODE_RECEIVE_SMS = 101
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        println("onCreate")
-//        Log.d("MainActivity", "onCreate")
-//        super.onCreate(savedInstanceState)
-//        enableEdgeToEdge()
-//        setContent {
-//            SmsLockTheme {
-//                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    Greeting(
-//                        name = "Android",
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
-//                }
-//            }
-//        }
-//        println("PRE Requesting device admin permission")
-//        checkSmsPermission()
-//    }
-//
-//    private fun checkSmsPermission() {
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)
-//            != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.RECEIVE_SMS),
-//                REQUEST_CODE_RECEIVE_SMS
-//            )
-//        }
-//    }
-//
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        if (requestCode == REQUEST_CODE_RECEIVE_SMS) {
-//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                // Permission granted
-//            } else {
-//                // Permission denied
-//            }
-//        }
-//    }
-//
-//}
-//
-//@Composable
-//fun Greeting(name: String, modifier: Modifier = Modifier) {
-//    Text(
-//        text = "Hello $name!",
-//        modifier = modifier
-//    )
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    SmsLockTheme {
-//        Greeting("Android")
-//    }
-//}
-
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 class MainActivity : AppCompatActivity() {
 
@@ -106,12 +23,30 @@ class MainActivity : AppCompatActivity() {
     private val RESULT_ENABLE = 1
     private val SMS_PERMISSION_CODE = 101
 
+    fun isNotificationServiceEnabled(context: Context): Boolean {
+        val packageNames = Settings.Secure.getString(
+            context.contentResolver, "enabled_notification_listeners"
+        )
+        return packageNames != null && packageNames.contains(context.packageName)
+    }
 
-    fun lockPhone() {
-        if (devicePolicyManager.isAdminActive(compName)) {
-            devicePolicyManager.lockNow() // Verrouille immédiatement l'appareil
+    fun requestNotificationListenerPermission(context: Context) {
+        if (!isNotificationServiceEnabled(context)) {
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            context.startActivity(intent)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (isNotificationServiceEnabled(this)) {
+            // Notification listener permission is enabled, proceed with the service
+            Toast.makeText(this, "Permission Notification ok", Toast.LENGTH_SHORT).show()
+
         } else {
-            Toast.makeText(this, "Requires Admin Privileges", Toast.LENGTH_SHORT).show()
+            // Permission is not granted, ask again or handle accordingly
+            Toast.makeText(this, "Permission Notification fail", Toast.LENGTH_SHORT).show()
+
         }
     }
 
@@ -120,6 +55,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+       if (!isNotificationServiceEnabled(this)) {
+           AlertDialog.Builder(this)
+               .setTitle("Enable Notification Access")
+               .setMessage("This app needs access to your notifications to detect incoming messages and perform certain actions like locking the device. Please enable notification access in the next screen.")
+               .setPositiveButton("OK") { dialog, _ ->
+                   requestNotificationListenerPermission(this)
+               }
+               .setNegativeButton("Cancel", null)
+               .show()
+       }
         devicePolicyManager = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         compName = ComponentName(this, MyDeviceAdminReceiver::class.java)
 

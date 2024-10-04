@@ -61,6 +61,15 @@ As these are neither SMS nor MMS.
 You need as the sender to disable it in the communication setting to the stolen phone running this app.
 Messages App > The Contact >  Details > Use SMS & MMS.
 
+To be able to intercept RCS chat the app will request Notification Permission.
+To enable you might need to: https://stackoverflow.com/a/72217217
+
+## TODO
+
+- Configurable word
+- ON/OFF Toggle
+- Delay before another lock to prevent DDOS and give time to airplane if abused
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
