@@ -66,9 +66,8 @@ To enable you might need to: https://stackoverflow.com/a/72217217
 
 ## TODO
 
-- Configurable word
 - ON/OFF Toggle
-- Delay before another lock to prevent DDOS and give time to airplane if abused
+- Allowed lockers list if needed
 
 ## License
 

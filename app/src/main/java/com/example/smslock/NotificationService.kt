@@ -6,7 +6,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import android.widget.Toast
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+
 
 class NotificationService : NotificationListenerService() {
 
@@ -16,11 +21,20 @@ class NotificationService : NotificationListenerService() {
             val extras = sbn.notification.extras
             val message = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
 
-            // Detect if this message matches your criteria (e.g., comes from the specific number)
-            if (message?.contains("lockmenow") == true) {
-                // Trigger lockPhone
-                lockPhone()
-            }
+            val inputData = workDataOf("sms_message" to message)
+            val smsWorkRequest = OneTimeWorkRequestBuilder<SmsWorker>()
+                .setInputData(inputData)
+                .build()
+            Log.d("NotificationService", "Enqueuing SMS work request");
+            WorkManager.getInstance(this).enqueue(listOf(smsWorkRequest))
+
+//            val sharedPrefs = getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+//            val lockMessage = sharedPrefs.getString("lock_message", "default message")
+//            // Detect if this message matches your criteria (e.g., comes from the specific number)
+//            if (message?.contains(lockMessage.toString()) == true) {
+//                // Trigger lockPhone
+//                lockPhone()
+//            }
         }
     }
 

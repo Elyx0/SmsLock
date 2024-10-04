@@ -13,6 +13,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 
@@ -88,9 +89,33 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Requires admin privileges with lock.")
             startActivityForResult(intent, RESULT_ENABLE)
         }
+
+        val sharedPrefs = getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+        val safeWord = findViewById<EditText>(R.id.editTextText)
+        val delay = findViewById<EditText>(R.id.editTextText2)
+
+        safeWord.setText(sharedPrefs.getString("lock_message", "lockmenow"))
+        delay.setText((sharedPrefs.getLong("delay_ms", 3*60*1000L) / 60000L).toString())
+
+        // Find R.id.save
+        val btnSave: Button = findViewById(R.id.save)
+        btnSave.setOnClickListener {
+            Log.d("MainActivity", "Save button clicked")
+            if (safeWord.text.toString().isEmpty() || delay.text.toString().isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            } else {
+                // Save the safe word and delay to SharedPreferences
+                val editor = sharedPrefs.edit()
+                editor.putString("lock_message", safeWord.getText().toString())
+                editor.putLong("delay_ms", delay.getText().toString().toLong() *60000L)
+                editor.apply()
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
     }
 
-    // Gérer la réponse de l'utilisateur pour les permissions
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

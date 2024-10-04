@@ -3,8 +3,9 @@ import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.content.SharedPreferences
 import androidx.core.content.ContextCompat
-//import androidx.core.content.ContextCompat.getSystemService
+import java.util.Date
 
 
 class SmsWorker(appContext: Context, workerParams: androidx.work.WorkerParameters) :
@@ -15,7 +16,22 @@ class SmsWorker(appContext: Context, workerParams: androidx.work.WorkerParameter
 
         if (message != null) {
             // Process the SMS message here (e.g., check for keywords, lock the device)
-            if (message.contains("lockmenow")) {
+            val sharedPrefs = applicationContext.getSharedPreferences("my_prefs", Context.MODE_PRIVATE)
+            val lockMessage = sharedPrefs.getString("lock_message", "lockmenow")
+
+            if (!message.contains(lockMessage.toString())) { return Result.success() }
+            Log.d("SmsWorker", "Message has lock");
+
+            val delay = sharedPrefs.getLong("delay_ms", 3*60*1000L)
+            val currentTimestamp = System.currentTimeMillis()
+            val lastLock = sharedPrefs.getLong("last_lock", 0)
+            if (currentTimestamp - lastLock > delay) {
+                Log.d("SmsWorker", "Delay elapsed");
+
+                // Edit shared pref to store last time of lock
+                val editor = sharedPrefs.edit()
+                editor.putLong("last_lock", currentTimestamp)
+                editor.apply()
                 lockDevice(applicationContext)
             }
             return Result.success()

@@ -9,4 +9,41 @@
         android:layout_width="match_parent"
         android:layout_height="127dp"
         android:text="Allow Lock Screen" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Safe word" />
+
+    <EditText
+        android:id="@+id/editTextText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:text="lockmenow" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Number of minutes since last" />
+
+    <EditText
+        android:id="@+id/editTextText2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="number"
+        android:text="3" />
+
+    <Button
+        android:id="@+id/save"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:translationX="@android:dimen/notification_large_icon_width"
+        android:translationY="@android:dimen/notification_large_icon_height" />
+
 </LinearLayout>
